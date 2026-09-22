@@ -54,7 +54,7 @@ ON CONFLICT (id) DO UPDATE SET
   image_alt = EXCLUDED.image_alt;
 
 -- -----------------------------------------------------------------------------
--- ALMACENAMIENTO (STORAGE)
+-- ALMACENAMIENTO DEL PORYECTO
 -- -----------------------------------------------------------------------------
 
 -- Crear bucket público "images" si no existe
