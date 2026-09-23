@@ -3,10 +3,7 @@ import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import dynamic from "next/dynamic";
 
-const Sneaker3DScene = dynamic(() => import("./Sneaker3DScene"), {
-  ssr: false,
-  loading: () => <div className="sneaker-loader" />,
-});
+import Sneaker3DScene from "./Sneaker3DScene";
 
 // API endpoint para correos
 

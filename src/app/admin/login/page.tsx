@@ -63,23 +63,23 @@ export default function AdminLoginPage() {
         return;
       }
 
-      // Verificar si es admin antes de entrar al dashboard
+      // Verificar si es superAdmin antes de entrar al dashboard
       const { data: userData, error: userError } = await supabaseMain
         .from('users')
-        .select('is_admin')
+        .select('superAdmin')
         .eq('id', data.user.id)
         .single();
 
       if (userError) {
         await supabaseMain.auth.signOut();
-        setError(`Error al verificar permisos: ${userError.message}`);
+        setError(`Error de permisos en Base de Datos: ${userError.message}`);
         setLoading(false);
         return;
       }
 
-      if (!userData?.is_admin) {
+      if (!userData?.superAdmin) {
         await supabaseMain.auth.signOut();
-        setError("Acceso denegado. No tienes permisos de administrador.");
+        setError("Acceso denegado. Solo cuentas superAdmin pueden entrar.");
         setLoading(false);
         return;
       }
@@ -95,8 +95,18 @@ export default function AdminLoginPage() {
         
         {/* Logo */}
         <div className="mb-6 flex flex-col items-center">
-          <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4 shadow-lg" style={{ background: "#111" }}>
-            <span style={{ fontFamily: "Bebas Neue, sans-serif", color: "#ff5500", fontSize: "1.4rem" }}>SZ</span>
+          <div className="mb-1">
+            <span style={{ 
+              fontFamily: "'Bebas Neue', sans-serif", 
+              fontSize: "3.2rem", 
+              letterSpacing: "3px", 
+              color: "#111",
+              fontWeight: 900,
+              lineHeight: 1,
+              display: "block"
+            }}>
+              Sneakerz
+            </span>
           </div>
           <h1 style={{ fontFamily: "Bebas Neue, sans-serif", fontSize: "2rem", color: "#111" }}>
             {isRegistering ? "CREAR ADMINISTRADOR" : "ADMINISTRACIÓN"}

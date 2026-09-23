@@ -46,7 +46,7 @@ export default function OrderStatus() {
       <div style={{ maxWidth: "800px", margin: "0 auto", textAlign: "center" }}>
         
         <p style={{
-          color: "#ff5500",
+          color: "#FFD200",
           fontSize: "0.75rem",
           fontWeight: 700,
           letterSpacing: "0.3em",
@@ -62,7 +62,7 @@ export default function OrderStatus() {
           lineHeight: 1,
           marginBottom: "20px",
         }}>
-          ESTATUS DE TUS <span style={{ color: "#ff5500" }}>SNEAKERS</span>
+          ESTATUS DE TUS <span style={{ color: "#FFD200" }}>SNEAKERS</span>
         </h2>
         <p style={{ color: "#888", fontSize: "1rem", marginBottom: "40px", maxWidth: "600px", margin: "0 auto 40px" }}>
           Ingresa el correo electrónico con el que registraste tu servicio para conocer el avance y ver el historial de pedidos.
@@ -91,7 +91,7 @@ export default function OrderStatus() {
                 outline: "none",
                 transition: "border-color 0.2s"
               }}
-              onFocus={(e) => e.target.style.borderColor = "#ff5500"}
+              onFocus={(e) => e.target.style.borderColor = "#FFD200"}
               onBlur={(e) => e.target.style.borderColor = "#333"}
               required
             />
@@ -100,19 +100,19 @@ export default function OrderStatus() {
             type="submit"
             disabled={loading}
             style={{
-              background: loading ? "#444" : "#ff5500",
-              color: "#fff",
+              background: loading ? "#444" : "#FFD200",
+              color: "#000",
               border: "none",
               padding: "0 32px",
               borderRadius: "8px",
-              fontWeight: 700,
+              fontWeight: 800,
               fontSize: "0.95rem",
               letterSpacing: "0.05em",
               cursor: loading ? "not-allowed" : "pointer",
-              transition: "background 0.2s"
+              transition: "all 0.2s"
             }}
-            onMouseEnter={(e) => { if(!loading) e.currentTarget.style.background = "#dd4400" }}
-            onMouseLeave={(e) => { if(!loading) e.currentTarget.style.background = "#ff5500" }}
+            onMouseEnter={(e) => { if(!loading) e.currentTarget.style.background = "#E5BC00" }}
+            onMouseLeave={(e) => { if(!loading) e.currentTarget.style.background = "#FFD200" }}
           >
             {loading ? "BUSCANDO..." : "BUSCAR"}
           </button>
@@ -203,7 +203,7 @@ export default function OrderStatus() {
                           </div>
                           <div style={{ flex: 1, minWidth: "120px" }}>
                             <p style={{ color: "#888", fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "4px" }}>Restante</p>
-                            <p style={{ color: "#ff5500", fontSize: "1.5rem", fontWeight: 700 }}>${restante.toFixed(2)}</p>
+                            <p style={{ color: "#FFD200", fontSize: "1.5rem", fontWeight: 700 }}>${restante.toFixed(2)}</p>
                           </div>
                         </div>
 

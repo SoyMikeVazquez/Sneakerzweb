@@ -4,14 +4,7 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { motion, useScroll, useTransform, useSpring } from "framer-motion";
 
-const Sneaker3DScene = dynamic(() => import("./Sneaker3DScene"), {
-  ssr: false,
-  loading: () => (
-    <div className="w-full h-full flex items-center justify-center">
-      <div className="sneaker-loader" />
-    </div>
-  ),
-});
+import Sneaker3DScene from "./Sneaker3DScene";
 
 export default function Sneaker3DSection() {
   const sectionRef = useRef<HTMLElement>(null);
@@ -54,14 +47,14 @@ export default function Sneaker3DSection() {
             initial={{ opacity: 0, y: 10 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="text-orange-600 font-bold text-xs uppercase tracking-[0.3em] mb-4"
+            className="text-yellow font-bold text-xs uppercase tracking-[0.3em] mb-4"
           >
             ✦ EXPERIENCIA 3D INTERACTIVA
           </motion.p>
 
           <h2 className="font-bebas text-white italic text-6xl sm:text-7xl lg:text-8xl leading-[0.85] mb-8">
             NUEVA VIDA<br />
-            <span className="text-orange-600">PARA TUS</span><br />
+            <span className="text-yellow">PARA TUS</span><br />
             SNEAKERS
           </h2>
 
@@ -78,7 +71,7 @@ export default function Sneaker3DSection() {
                 transition={{ delay: 0.5 + i * 0.1 }}
                 className="flex items-center gap-3 group"
               >
-                <div className="w-1.5 h-1.5 rounded-full bg-orange-600 group-hover:scale-150 transition-transform" />
+                <div className="w-1.5 h-1.5 rounded-full bg-yellow group-hover:scale-150 transition-transform" />
                 <span className="text-gray-300 uppercase text-sm tracking-widest">{item}</span>
               </motion.div>
             ))}
@@ -104,7 +97,7 @@ export default function Sneaker3DSection() {
             transition={{ delay: 1.5 }}
             className="absolute bottom-4 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
           >
-            <div className="w-px h-12 bg-gradient-to-t from-orange-600 to-transparent" />
+            <div className="w-px h-12 bg-gradient-to-t from-yellow to-transparent" />
             <p className="text-[10px] text-gray-600 uppercase tracking-widest">Scroll para rotar</p>
           </motion.div>
         </motion.div>
@@ -113,12 +106,12 @@ export default function Sneaker3DSection() {
       {/* Progress Arc (fixed or absolute) */}
       <div className="absolute bottom-10 right-10 hidden lg:block">
         <motion.div style={{ rotate: 0 }}>
-          <svg width="80" height="80" viewBox="0 0 80 80" className="drop-shadow-[0_0_10px_rgba(255,85,0,0.3)]">
+          <svg width="80" height="80" viewBox="0 0 80 80" className="drop-shadow-[0_0_10px_rgba(255,210,0,0.3)]">
             <circle cx="40" cy="40" r="35" fill="none" stroke="#222" strokeWidth="2" />
             <motion.circle
               cx="40" cy="40" r="35"
               fill="none"
-              stroke="#ff5500"
+              stroke="#FFD200"
               strokeWidth="2"
               strokeLinecap="round"
               style={{

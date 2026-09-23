@@ -8,34 +8,20 @@ const navItems = [
   {
     label: "Dashboard",
     href: "/admin/dashboard",
-    icon: (
-      <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <rect x="3" y="3" width="7" height="7" rx="1" strokeWidth="2"/>
-        <rect x="14" y="3" width="7" height="7" rx="1" strokeWidth="2"/>
-        <rect x="3" y="14" width="7" height="7" rx="1" strokeWidth="2"/>
-        <rect x="14" y="14" width="7" height="7" rx="1" strokeWidth="2"/>
-      </svg>
-    ),
+    icon: <i className="bx bxs-dashboard" style={{ fontSize: "1.25rem" }} />,
   },
+  /* Ocultos temporalmente por requerimiento
   {
     label: "Finanzas y Pedidos",
     href: "/admin/dashboard/finanzas",
-    icon: (
-      <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-      </svg>
-    ),
+    icon: <i className="bx bx-dollar-circle" style={{ fontSize: "1.25rem" }} />,
   },
   {
     label: "Administrar",
     href: "/admin/dashboard/administrar",
-    icon: (
-      <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-        <path strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-      </svg>
-    ),
+    icon: <i className="bx bx-cog" style={{ fontSize: "1.25rem" }} />,
   },
+  */
 ];
 
 export default function AdminLayout({
@@ -50,11 +36,29 @@ export default function AdminLayout({
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   useEffect(() => {
+    let isMounted = true;
+
     const checkAuth = async () => {
       const { data: { session } } = await supabaseMain.auth.getSession();
       if (!session) {
-        router.replace("/admin/login");
-      } else {
+        if (isMounted) router.replace("/admin/login");
+        return;
+      }
+
+      // Verify superAdmin status
+      const { data: userData, error } = await supabaseMain
+        .from('users')
+        .select('superAdmin')
+        .eq('id', session.user.id)
+        .single();
+
+      if (error || !userData?.superAdmin) {
+        await supabaseMain.auth.signOut();
+        if (isMounted) router.replace("/admin/login?error=unauthorized");
+        return;
+      }
+
+      if (isMounted) {
         setUserEmail(session.user.email ?? "");
         setChecking(false);
       }
@@ -63,16 +67,32 @@ export default function AdminLayout({
     checkAuth();
 
     const { data: { subscription } } = supabaseMain.auth.onAuthStateChange(
-      (_event, session) => {
+      async (_event, session) => {
         if (!session) {
-          router.replace("/admin/login");
+          if (isMounted) router.replace("/admin/login");
         } else {
-          setUserEmail(session.user.email ?? "");
+          // Also verify on auth state changes (e.g. initial login)
+          const { data: userData } = await supabaseMain
+            .from('users')
+            .select('superAdmin')
+            .eq('id', session.user.id)
+            .single();
+
+          if (!userData?.superAdmin) {
+            await supabaseMain.auth.signOut();
+            if (isMounted) router.replace("/admin/login?error=unauthorized");
+          } else if (isMounted) {
+            setUserEmail(session.user.email ?? "");
+            setChecking(false); // Make sure to hide the loader if this fired late
+          }
         }
       }
     );
 
-    return () => subscription.unsubscribe();
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
   }, [router]);
 
   const handleLogout = async () => {
@@ -116,10 +136,20 @@ export default function AdminLayout({
       {/* Sidebar */}
       <aside style={{ width: sidebarOpen ? "220px" : "70px", background: "#fff", borderRight: "1px solid #ebebeb", display: "flex", flexDirection: "column", transition: "width 0.25s ease", overflow: "hidden", position: "fixed", top: 0, bottom: 0, left: 0, zIndex: 100 }}>
         <div style={{ padding: "24px", display: "flex", alignItems: "center", gap: "12px", borderBottom: "1px solid #f8f8f8" }}>
-          <div style={{ width: "32px", height: "32px", background: "#111", borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-            <span style={{ color: "#ff5500", fontWeight: 800, fontSize: "0.8rem", fontFamily: "Bebas Neue" }}>SZ</span>
+          <div style={{ width: "100%", display: "flex", justifyContent: sidebarOpen ? "flex-start" : "center", overflow: "hidden" }}>
+            <span style={{ 
+              fontFamily: "'Bebas Neue', sans-serif", 
+              fontSize: sidebarOpen ? "1.8rem" : "1.6rem", 
+              letterSpacing: sidebarOpen ? "2px" : "1px", 
+              color: "#111", 
+              fontWeight: 900, 
+              lineHeight: 1,
+              whiteSpace: "nowrap",
+              userSelect: "none"
+            }}>
+              {sidebarOpen ? "Sneakerz" : "SZ"}
+            </span>
           </div>
-          {sidebarOpen && <span style={{ fontWeight: 800, fontSize: "0.9rem", letterSpacing: "0.1em", color: "#111" }}>SNEAKERZ</span>}
         </div>
         
         <nav style={{ flex: 1, padding: "20px 12px" }}>
@@ -136,9 +166,7 @@ export default function AdminLayout({
 
         <div style={{ padding: "16px", borderTop: "1px solid #f8f8f8" }}>
           <button onClick={handleLogout} style={{ width: "100%", display: "flex", alignItems: "center", gap: "12px", padding: "12px", borderRadius: "10px", color: "#e53e3e", background: "none", border: "none", cursor: "pointer" }}>
-            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeWidth="2" strokeLinecap="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
-            </svg>
+            <i className="bx bx-log-out" style={{ fontSize: "1.25rem" }} />
             {sidebarOpen && <span style={{ fontSize: "0.85rem", fontWeight: 600 }}>Cerrar Sesión</span>}
           </button>
         </div>
@@ -149,10 +177,8 @@ export default function AdminLayout({
         
         {/* Topbar */}
         <header style={{ height: "64px", background: "#fff", borderBottom: "1px solid #ebebeb", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 32px", position: "sticky", top: 0, zIndex: 90 }}>
-          <button onClick={() => setSidebarOpen(!sidebarOpen)} style={{ background: "none", border: "none", color: "#666", cursor: "pointer" }}>
-            <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeWidth="2" strokeLinecap="round" d="M4 6h16M4 12h16M4 18h7"/>
-            </svg>
+          <button onClick={() => setSidebarOpen(!sidebarOpen)} style={{ background: "none", border: "none", color: "#666", cursor: "pointer", display: "flex", alignItems: "center" }}>
+            <i className="bx bx-menu" style={{ fontSize: "1.6rem" }} />
           </button>
 
           <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>

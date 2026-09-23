@@ -22,7 +22,7 @@ export default function CursorFollower() {
   return (
     <>
       <motion.div
-        className="fixed top-0 left-0 w-8 h-8 border-2 border-orange-600 rounded-full pointer-events-none z-[9999] mix-blend-difference hidden md:block"
+        className="fixed top-0 left-0 w-8 h-8 border-2 border-[#FFD200] rounded-full pointer-events-none z-[9999] mix-blend-difference hidden md:block"
         style={{
           x: mouseX,
           y: mouseY,
@@ -31,7 +31,7 @@ export default function CursorFollower() {
         }}
       />
       <motion.div
-        className="fixed top-0 left-0 w-1.5 h-1.5 bg-orange-600 rounded-full pointer-events-none z-[9999] hidden md:block"
+        className="fixed top-0 left-0 w-1.5 h-1.5 bg-[#FFD200] rounded-full pointer-events-none z-[9999] hidden md:block"
         style={{
           x: mouseX,
           y: mouseY,

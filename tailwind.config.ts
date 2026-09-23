@@ -9,10 +9,21 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        yellow: {
+          DEFAULT: "#FFD200",
+          dark: "#E5BC00",
+          light: "#FFE24A",
+        },
+        brand: {
+          yellow: "#FFD200",
+          black: "#0A0A0A",
+          dark: "#121212",
+          card: "#181818",
+        },
         orange: {
-          DEFAULT: "#FF6B1A",
-          dark: "#E55A00",
-          light: "#FF8C42",
+          DEFAULT: "#FFD200",
+          dark: "#E5BC00",
+          light: "#FFE24A",
         },
         dark: {
           DEFAULT: "#0A0A0A",

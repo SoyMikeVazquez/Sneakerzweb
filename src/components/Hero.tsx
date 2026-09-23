@@ -23,13 +23,20 @@ export default function Hero() {
 
       {/* Content */}
       <div
-        className="relative z-10 text-center px-4 w-full max-w-4xl mx-auto flex flex-col items-center gap-6"
+        className="relative z-10 text-center px-4 w-full max-w-4xl mx-auto flex flex-col items-center gap-5"
       >
+        {/* Streetwear top badge */}
+        <div className="hero-anim-title inline-flex items-center gap-2 bg-yellow text-black font-black px-3.5 py-1 text-xs tracking-widest uppercase rounded-sm shadow-[3px_3px_0px_#000] transform -rotate-1">
+          <span>⚡ SNEAKERZ BODY SHOP</span>
+          <span className="opacity-40">/</span>
+          <span>EST. DETAIL & CARE</span>
+        </div>
+
         <h1 className="hero-title hero-anim-title">
           DAMOS NUEVA VIDA A TUS SNEAKERZ
         </h1>
 
-        <div className="hero-subtitle-box hero-anim-subtitle">
+        <div className="hero-subtitle-box hero-anim-subtitle relative">
           <p>
             Limpieza, restauración, detailing y protección profesional para
             tus sneakers y artículos de lujo.

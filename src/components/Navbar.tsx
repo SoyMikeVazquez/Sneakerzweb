@@ -29,7 +29,7 @@ export default function Navbar() {
   return (
     <nav 
       className={`navbar transition-all duration-500 ${scrolled ? "h-[65px] bg-black/90 backdrop-blur-md" : "h-[75px] bg-black"}`}
-      style={{ borderBottom: scrolled ? "1px solid rgba(255,85,0,0.3)" : "3px solid var(--orange)" }}
+      style={{ borderBottom: scrolled ? "1px solid rgba(255,210,0,0.3)" : "3px solid var(--yellow)" }}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between">
         {/* Real logo */}
@@ -50,11 +50,11 @@ export default function Navbar() {
             <Link
               key={link.href}
               href={link.href}
-              className={`nav-link relative group ${pathname === link.href ? "active" : ""}`}
+              className={`nav-link relative group ${pathname === link.href ? "active text-yellow" : ""}`}
             >
               {link.label}
               <motion.span 
-                className="absolute -bottom-1 left-0 w-0 h-0.5 bg-orange-600 transition-all duration-300 group-hover:w-full"
+                className="absolute -bottom-1 left-0 w-0 h-0.5 bg-yellow transition-all duration-300 group-hover:w-full"
                 animate={{ width: pathname === link.href ? "100%" : "0%" }}
               />
             </Link>
@@ -90,7 +90,7 @@ export default function Navbar() {
                 >
                   <Link
                     href={link.href}
-                    className={`nav-link text-lg ${pathname === link.href ? "text-orange-600" : ""}`}
+                    className={`nav-link text-lg ${pathname === link.href ? "text-yellow font-bold" : ""}`}
                     onClick={() => setIsOpen(false)}
                   >
                     {link.label}

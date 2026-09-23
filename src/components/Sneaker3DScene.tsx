@@ -3,9 +3,10 @@ import { useRef, Suspense, useEffect, useState, useMemo } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { useGLTF, ContactShadows, Html, Float } from "@react-three/drei";
 import * as THREE from "three";
+import ErrorBoundary from "./ErrorBoundary";
 
 // High quality but optimized model
-const SNEAKER_MODEL_URL = "https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/MaterialsVariantsShoe/glTF-Binary/MaterialsVariantsShoe.glb";
+const SNEAKER_MODEL_URL = "/shoe.glb";
 
 function SneakerModel({ scrollProgress }: { scrollProgress: number }) {
   const groupRef = useRef<THREE.Group>(null!);
@@ -62,32 +63,38 @@ export default function Sneaker3DScene({ scrollProgress }: { scrollProgress: num
   if (!mounted) return <div className="w-full h-full bg-black" />;
 
   return (
-    <div className="w-full h-full relative bg-black">
-      <Canvas
-        camera={{ position: [0, 0, 5], fov: 40 }}
-        dpr={[1, 2]}
-        gl={{
-          antialias: true,
-          alpha: true,
-          powerPreference: "high-performance"
-        }}
-      >
-        {/* Studio-quality manual lighting — no external HDR needed */}
-        <ambientLight intensity={3} />
-        <directionalLight position={[5, 10, 5]} intensity={4} />
-        <directionalLight position={[-5, 10, -5]} intensity={2} color="#ff5500" />
-        <pointLight position={[0, 0, 8]} intensity={3} color="#ffffff" />
-        <pointLight position={[8, 0, 0]} intensity={2} color="#ffe5d0" />
-        <pointLight position={[-8, 0, 0]} intensity={2} color="#ff5500" />
+    <div className="w-full h-full relative bg-black rounded-2xl overflow-hidden">
+      <ErrorBoundary>
+        <Canvas
+          camera={{ position: [0, 0, 5], fov: 40 }}
+          dpr={[1, 2]}
+          gl={{
+            antialias: true,
+            alpha: true,
+            powerPreference: "high-performance"
+          }}
+        >
+          {/* Studio-quality manual lighting — no external HDR needed */}
+          <ambientLight intensity={3} />
+          <directionalLight position={[5, 10, 5]} intensity={4} />
+          <directionalLight position={[-5, 10, -5]} intensity={2} color="#ff5500" />
+          <pointLight position={[0, 0, 8]} intensity={3} color="#ffffff" />
+          <pointLight position={[8, 0, 0]} intensity={2} color="#ffe5d0" />
+          <pointLight position={[-8, 0, 0]} intensity={2} color="#ff5500" />
 
-        <Suspense fallback={null}>
-          <Float speed={1.5} rotationIntensity={0.2} floatIntensity={0.5}>
-            <SneakerModel scrollProgress={scrollProgress} />
-          </Float>
-        </Suspense>
+          <Suspense fallback={
+            <Html center>
+              <div className="sneaker-loader" />
+            </Html>
+          }>
+            <Float speed={1.5} rotationIntensity={0.2} floatIntensity={0.5}>
+              <SneakerModel scrollProgress={scrollProgress} />
+            </Float>
+          </Suspense>
 
-        <ContactShadows position={[0, -1.8, 0]} opacity={0.6} scale={10} blur={2.5} far={4.5} />
-      </Canvas>
+          <ContactShadows position={[0, -1.8, 0]} opacity={0.6} scale={10} blur={2.5} far={4.5} />
+        </Canvas>
+      </ErrorBoundary>
     </div>
   );
 }

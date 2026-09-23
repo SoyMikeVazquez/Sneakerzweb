@@ -7,16 +7,15 @@ export default function FinanzasPage() {
   const [nombreRegistro, setNombreRegistro] = useState("");
   const [descripcion, setDescripcion] = useState("");
   const [monto, setMonto] = useState("");
-  const [adelanto, setAdelanto] = useState("");
   const [contacto, setContacto] = useState("");
-  const [estatus, setEstatus] = useState("Inicio");
+  const [metodoPago, setMetodoPago] = useState("Transferencia");
+  const [tipoIngreso, setTipoIngreso] = useState("Servicio");
   
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
   
   const [finanzasList, setFinanzasList] = useState<any[]>([]);
-  const [updatingId, setUpdatingId] = useState<string | null>(null);
 
   // Fechas para el dashboard
   const [startDate, setStartDate] = useState("");
@@ -38,6 +37,7 @@ export default function FinanzasPage() {
     const { data } = await supabaseMain
       .from("Finanzas")
       .select("*")
+      .eq("isGasto", false) // Solo ingresos por ahora
       .order("created_at", { ascending: false });
     
     if (data) {
@@ -59,51 +59,33 @@ export default function FinanzasPage() {
           nombre_registro: nombreRegistro,
           descripcion: descripcion,
           monto_cobrar: parseFloat(monto) || 0,
-          adelanto: parseFloat(adelanto) || 0,
           contacto: contacto,
-          estatus: estatus
+          metodo_pago: metodoPago,
+          tipo_ingreso: tipoIngreso,
+          isGasto: false // Solo ingresos
         }])
         .select();
 
       if (error) throw error;
 
-      setSuccessMsg("Registro guardado exitosamente. (El correo se enviará vía Supabase Webhook)");
+      setSuccessMsg("Ingreso guardado exitosamente.");
       setNombreRegistro("");
       setDescripcion("");
       setMonto("");
-      setAdelanto("");
       setContacto("");
-      setEstatus("Inicio");
+      setMetodoPago("Transferencia");
+      setTipoIngreso("Servicio");
       fetchFinanzas();
     } catch (err: any) {
-      setErrorMsg("Error al guardar en la base de datos. Verifica tu conexión.");
+      setErrorMsg("Error al guardar en la base de datos: " + err.message);
     }
     setLoading(false);
   };
 
-  const handleUpdateStatus = async (item: any, newStatus: string) => {
-    setUpdatingId(item.id);
-    try {
-      // Actualización directa en Supabase (Compatible con npm run build / out)
-      const { error } = await supabaseMain
-        .from("Finanzas")
-        .update({ estatus: newStatus })
-        .eq("id", item.id);
-
-      if (error) throw error;
-
-      setFinanzasList(prev => prev.map(p => p.id === item.id ? { ...p, estatus: newStatus } : p));
-      alert("Estatus actualizado correctamente en la base de datos.");
-    } catch (err: any) {
-      alert("Error al actualizar: " + err.message);
-    }
-    setUpdatingId(null);
-  };
-
-  const getStatusColor = (st: string) => {
-    if (st === "Finalizado") return { bg: "#d1fae5", text: "#065f46" };
-    if (st === "En Proceso") return { bg: "#fef3c7", text: "#92400e" };
-    return { bg: "#e0f2fe", text: "#075985" }; // Inicio
+  const getMethodColor = (method: string) => {
+    if (method === "Efectivo") return { bg: "#d1fae5", text: "#065f46" };
+    if (method === "Tarjeta") return { bg: "#e0f2fe", text: "#075985" };
+    return { bg: "#fef3c7", text: "#92400e" }; // Transferencia
   };
 
   // Calcular los registros filtrados
@@ -133,7 +115,7 @@ export default function FinanzasPage() {
     const start = new Date(startYear, startMonth - 1, startDay, 0, 0, 0);
     const end = new Date(endYear, endMonth - 1, endDay, 23, 59, 59);
 
-    const grouped: Record<string, { dateStr: string, monto: number, adelanto: number }> = {};
+    const grouped: Record<string, { dateStr: string, monto: number }> = {};
     
     // Rellenar días intermedios con 0
     let curr = new Date(start);
@@ -141,7 +123,7 @@ export default function FinanzasPage() {
     let safetyCounter = 0;
     while (curr <= end && safetyCounter < 365) {
       const dateStr = curr.toLocaleDateString("es-MX", { day: "2-digit", month: "short" });
-      grouped[dateStr] = { dateStr, monto: 0, adelanto: 0 };
+      grouped[dateStr] = { dateStr, monto: 0 };
       curr.setDate(curr.getDate() + 1);
       safetyCounter++;
     }
@@ -151,7 +133,6 @@ export default function FinanzasPage() {
       const dateStr = d.toLocaleDateString("es-MX", { day: "2-digit", month: "short" });
       if (grouped[dateStr]) {
         grouped[dateStr].monto += Number(item.monto_cobrar) || 0;
-        grouped[dateStr].adelanto += Number(item.adelanto) || 0;
       }
     });
 
@@ -160,7 +141,6 @@ export default function FinanzasPage() {
 
   const chartData = getChartData();
   const totalMonto = chartData.reduce((acc, curr) => acc + curr.monto, 0);
-  const totalAdelantos = chartData.reduce((acc, curr) => acc + curr.adelanto, 0);
 
   return (
     <>
@@ -193,26 +173,30 @@ export default function FinanzasPage() {
 
             <div style={{ display: "flex", gap: "16px" }}>
               <div style={{ flex: 1 }}>
-                <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 600, color: "#555", marginBottom: "6px" }}>Monto a Cobrar ($)</label>
+                <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 600, color: "#555", marginBottom: "6px" }}>Monto del Ingreso ($)</label>
                 <input type="number" required min="0" step="0.01" value={monto} onChange={(e) => setMonto(e.target.value)} style={{ width: "100%", padding: "12px 16px", borderRadius: "8px", border: "1px solid #e2e8f0", fontSize: "0.9rem", outline: "none", color: "#333" }} placeholder="0.00" />
               </div>
               <div style={{ flex: 1 }}>
-                <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 600, color: "#555", marginBottom: "6px" }}>Adelanto / Apartado ($)</label>
-                <input type="number" min="0" step="0.01" value={adelanto} onChange={(e) => setAdelanto(e.target.value)} style={{ width: "100%", padding: "12px 16px", borderRadius: "8px", border: "1px solid #e2e8f0", fontSize: "0.9rem", outline: "none", color: "#333" }} placeholder="0.00" />
+                <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 600, color: "#555", marginBottom: "6px" }}>Tipo de Ingreso</label>
+                <select value={tipoIngreso} onChange={(e) => setTipoIngreso(e.target.value)} style={{ width: "100%", padding: "12px 16px", borderRadius: "8px", border: "1px solid #e2e8f0", fontSize: "0.9rem", outline: "none", color: "#333", background: "#fff", cursor: "pointer" }}>
+                  <option value="Servicio">Servicio</option>
+                  <option value="Producto">Producto</option>
+                  <option value="Otro">Otro</option>
+                </select>
               </div>
             </div>
 
             <div style={{ display: "flex", gap: "16px" }}>
               <div style={{ flex: 2 }}>
-                <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 600, color: "#555", marginBottom: "6px" }}>Correo Electrónico (Para avisos)</label>
-                <input type="email" required value={contacto} onChange={(e) => setContacto(e.target.value)} style={{ width: "100%", padding: "12px 16px", borderRadius: "8px", border: "1px solid #e2e8f0", fontSize: "0.9rem", outline: "none", color: "#333" }} placeholder="ejemplo@correo.com" />
+                <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 600, color: "#555", marginBottom: "6px" }}>Contacto (Nombre, Tel, etc.)</label>
+                <input type="text" required value={contacto} onChange={(e) => setContacto(e.target.value)} style={{ width: "100%", padding: "12px 16px", borderRadius: "8px", border: "1px solid #e2e8f0", fontSize: "0.9rem", outline: "none", color: "#333" }} placeholder="Información de contacto" />
               </div>
               <div style={{ flex: 1 }}>
-                <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 600, color: "#555", marginBottom: "6px" }}>Estatus Inicial</label>
-                <select value={estatus} onChange={(e) => setEstatus(e.target.value)} style={{ width: "100%", padding: "12px 16px", borderRadius: "8px", border: "1px solid #e2e8f0", fontSize: "0.9rem", outline: "none", color: "#333", background: "#fff", cursor: "pointer" }}>
-                  <option value="Inicio">Inicio</option>
-                  <option value="En Proceso">En Proceso</option>
-                  <option value="Finalizado">Finalizado</option>
+                <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 600, color: "#555", marginBottom: "6px" }}>Método de Pago</label>
+                <select value={metodoPago} onChange={(e) => setMetodoPago(e.target.value)} style={{ width: "100%", padding: "12px 16px", borderRadius: "8px", border: "1px solid #e2e8f0", fontSize: "0.9rem", outline: "none", color: "#333", background: "#fff", cursor: "pointer" }}>
+                  <option value="Transferencia">Transferencia</option>
+                  <option value="Efectivo">Efectivo</option>
+                  <option value="Tarjeta">Tarjeta</option>
                 </select>
               </div>
             </div>
@@ -232,8 +216,7 @@ export default function FinanzasPage() {
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
               {finanzasList.map((item, idx) => {
-                const colors = getStatusColor(item.estatus || "Inicio");
-                const isUpdating = updatingId === item.id;
+                const colors = getMethodColor(item.metodo_pago || "Transferencia");
                 
                 return (
                   <div key={item.id || idx} style={{ padding: "16px", border: "1px solid #f0f0f0", borderRadius: "10px", display: "flex", flexDirection: "column", gap: "12px" }}>
@@ -245,35 +228,24 @@ export default function FinanzasPage() {
                         <p style={{ fontSize: "0.75rem", color: "#999", marginTop: "6px" }}>{item.contacto}</p>
                       </div>
                       <div style={{ textAlign: "right" }}>
-                        <p style={{ fontSize: "1.1rem", fontWeight: 800, color: "#10b981" }}>${item.monto_cobrar}</p>
-                        <p style={{ fontSize: "0.75rem", color: "#ff5500", marginTop: "2px" }}>Adelanto: ${item.adelanto}</p>
+                        <p style={{ fontSize: "1.1rem", fontWeight: 800, color: "#10b981" }}>+ ${item.monto_cobrar}</p>
+                        <p style={{ fontSize: "0.75rem", color: "#64748b", marginTop: "2px" }}>{item.tipo_ingreso}</p>
                       </div>
                     </div>
                     
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", borderTop: "1px dashed #eee", paddingTop: "12px" }}>
-                      <span style={{ fontSize: "0.75rem", fontWeight: 700, color: "#888" }}>ESTATUS:</span>
+                      <span style={{ fontSize: "0.75rem", fontWeight: 700, color: "#888" }}>MÉTODO DE PAGO:</span>
                       
-                      <select 
-                        value={item.estatus || "Inicio"} 
-                        onChange={(e) => handleUpdateStatus(item, e.target.value)}
-                        disabled={isUpdating}
-                        style={{ 
-                          padding: "4px 12px", 
-                          borderRadius: "20px", 
-                          border: "none", 
-                          fontSize: "0.75rem", 
-                          fontWeight: 700, 
-                          outline: "none", 
-                          cursor: isUpdating ? "not-allowed" : "pointer",
-                          background: colors.bg,
-                          color: colors.text,
-                          opacity: isUpdating ? 0.6 : 1
-                        }}
-                      >
-                        <option value="Inicio">Inicio</option>
-                        <option value="En Proceso">En Proceso</option>
-                        <option value="Finalizado">Finalizado</option>
-                      </select>
+                      <span style={{ 
+                        padding: "4px 12px", 
+                        borderRadius: "20px", 
+                        fontSize: "0.75rem", 
+                        fontWeight: 700, 
+                        background: colors.bg,
+                        color: colors.text
+                      }}>
+                        {item.metodo_pago}
+                      </span>
                     </div>
 
                   </div>
@@ -289,7 +261,7 @@ export default function FinanzasPage() {
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "16px", marginBottom: "32px" }}>
           <div>
             <h2 style={{ fontSize: "1.3rem", fontWeight: 800, color: "#111" }}>Dashboard de Ingresos</h2>
-            <p style={{ color: "#888", fontSize: "0.85rem", marginTop: "4px" }}>Visualiza el total a cobrar y los adelantos por periodo.</p>
+            <p style={{ color: "#888", fontSize: "0.85rem", marginTop: "4px" }}>Visualiza los ingresos por periodo.</p>
           </div>
           
           {/* Controles de fecha */}
@@ -318,16 +290,12 @@ export default function FinanzasPage() {
         {/* Resumen de KPIs */}
         <div style={{ display: "flex", gap: "24px", marginBottom: "32px", flexWrap: "wrap" }}>
           <div style={{ flex: 1, minWidth: "200px", padding: "20px", borderRadius: "12px", background: "#f8fafc", border: "1px solid #f1f5f9" }}>
-            <p style={{ fontSize: "0.75rem", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "8px" }}>Total a Cobrar</p>
+            <p style={{ fontSize: "0.75rem", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "8px" }}>Total de Ingresos</p>
             <p style={{ fontSize: "2rem", fontWeight: 800, color: "#10b981", lineHeight: 1 }}>${totalMonto.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</p>
           </div>
           <div style={{ flex: 1, minWidth: "200px", padding: "20px", borderRadius: "12px", background: "#f8fafc", border: "1px solid #f1f5f9" }}>
-            <p style={{ fontSize: "0.75rem", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "8px" }}>Total Recibido (Adelantos)</p>
-            <p style={{ fontSize: "2rem", fontWeight: 800, color: "#ff5500", lineHeight: 1 }}>${totalAdelantos.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</p>
-          </div>
-          <div style={{ flex: 1, minWidth: "200px", padding: "20px", borderRadius: "12px", background: "#f8fafc", border: "1px solid #f1f5f9" }}>
-            <p style={{ fontSize: "0.75rem", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "8px" }}>Pendiente por Recibir</p>
-            <p style={{ fontSize: "2rem", fontWeight: 800, color: "#0f172a", lineHeight: 1 }}>${(totalMonto - totalAdelantos).toLocaleString('es-MX', { minimumFractionDigits: 2 })}</p>
+            <p style={{ fontSize: "0.75rem", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "8px" }}>Total de Transacciones</p>
+            <p style={{ fontSize: "2rem", fontWeight: 800, color: "#0f172a", lineHeight: 1 }}>{chartData.filter(d => d.monto > 0).length}</p>
           </div>
         </div>
 
@@ -344,8 +312,7 @@ export default function FinanzasPage() {
                 formatter={(value: any) => [`$${Number(value).toFixed(2)}`, ""]}
               />
               <Legend iconType="circle" wrapperStyle={{ fontSize: "0.85rem", marginTop: "10px" }} />
-              <Bar dataKey="monto" name="Total a Cobrar" fill="#10b981" radius={[4, 4, 0, 0]} maxBarSize={50} />
-              <Bar dataKey="adelanto" name="Adelantos" fill="#ff5500" radius={[4, 4, 0, 0]} maxBarSize={50} />
+              <Bar dataKey="monto" name="Ingreso Total" fill="#10b981" radius={[4, 4, 0, 0]} maxBarSize={50} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -361,9 +328,9 @@ export default function FinanzasPage() {
                   <th style={{ textAlign: "left", padding: "12px", color: "#64748b", fontWeight: 700 }}>FECHA</th>
                   <th style={{ textAlign: "left", padding: "12px", color: "#64748b", fontWeight: 700 }}>CLIENTE / REGISTRO</th>
                   <th style={{ textAlign: "left", padding: "12px", color: "#64748b", fontWeight: 700 }}>DESCRIPCIÓN</th>
+                  <th style={{ textAlign: "left", padding: "12px", color: "#64748b", fontWeight: 700 }}>TIPO</th>
                   <th style={{ textAlign: "right", padding: "12px", color: "#64748b", fontWeight: 700 }}>MONTO</th>
-                  <th style={{ textAlign: "right", padding: "12px", color: "#64748b", fontWeight: 700 }}>ADELANTO</th>
-                  <th style={{ textAlign: "center", padding: "12px", color: "#64748b", fontWeight: 700 }}>ESTATUS</th>
+                  <th style={{ textAlign: "center", padding: "12px", color: "#64748b", fontWeight: 700 }}>MÉTODO</th>
                 </tr>
               </thead>
               <tbody>
@@ -377,18 +344,18 @@ export default function FinanzasPage() {
                       <td style={{ padding: "12px", color: "#333" }}>{new Date(item.created_at).toLocaleDateString("es-MX")}</td>
                       <td style={{ padding: "12px", color: "#111", fontWeight: 600 }}>{item.nombre_registro}</td>
                       <td style={{ padding: "12px", color: "#666" }}>{item.descripcion}</td>
+                      <td style={{ padding: "12px", color: "#666" }}>{item.tipo_ingreso}</td>
                       <td style={{ padding: "12px", textAlign: "right", color: "#10b981", fontWeight: 700 }}>${Number(item.monto_cobrar).toFixed(2)}</td>
-                      <td style={{ padding: "12px", textAlign: "right", color: "#ff5500", fontWeight: 700 }}>${Number(item.adelanto).toFixed(2)}</td>
                       <td style={{ padding: "12px", textAlign: "center" }}>
                         <span style={{ 
-                          background: getStatusColor(item.estatus || "Inicio").bg, 
-                          color: getStatusColor(item.estatus || "Inicio").text, 
+                          background: getMethodColor(item.metodo_pago || "Transferencia").bg, 
+                          color: getMethodColor(item.metodo_pago || "Transferencia").text, 
                           padding: "4px 8px", 
                           borderRadius: "12px", 
                           fontSize: "0.75rem", 
                           fontWeight: 700 
                         }}>
-                          {item.estatus || "Inicio"}
+                          {item.metodo_pago || "Transferencia"}
                         </span>
                       </td>
                     </tr>

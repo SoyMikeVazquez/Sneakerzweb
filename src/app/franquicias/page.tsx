@@ -111,23 +111,42 @@ export default function FranquiciasPage() {
               </div>
             </div>
 
-            <Link 
-              href="https://wa.me/5218118171792"
-              style={{ 
-                display: "inline-block",
-                marginTop: "50px",
-                padding: "18px 40px",
-                backgroundColor: "#ff5500",
-                color: "#fff",
-                fontFamily: "Bebas Neue, sans-serif",
-                fontSize: "1.2rem",
-                borderRadius: "8px",
-                letterSpacing: "0.1em",
-                transition: "transform 0.2s"
-              }}
-            >
-              HABLAR CON UN ASESOR POR WHATSAPP
-            </Link>
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "20px", marginTop: "50px" }}>
+              <Link 
+                href="https://wa.me/5218118171792"
+                style={{ 
+                  display: "inline-block",
+                  padding: "18px 40px",
+                  backgroundColor: "#ff5500",
+                  color: "#fff",
+                  fontFamily: "Bebas Neue, sans-serif",
+                  fontSize: "1.2rem",
+                  borderRadius: "8px",
+                  letterSpacing: "0.1em",
+                  transition: "transform 0.2s"
+                }}
+              >
+                HABLAR CON UN ASESOR POR WHATSAPP
+              </Link>
+
+              <Link 
+                href="https://guiadefranquicias.com/franquicia/688847"
+                target="_blank"
+                style={{ 
+                  display: "inline-block",
+                  padding: "18px 40px",
+                  backgroundColor: "#FFD200",
+                  color: "#000",
+                  fontFamily: "Bebas Neue, sans-serif",
+                  fontSize: "1.2rem",
+                  borderRadius: "8px",
+                  letterSpacing: "0.1em",
+                  transition: "transform 0.2s"
+                }}
+              >
+                VER DETALLES DE ESTA FRANQUICIA
+              </Link>
+            </div>
           </div>
 
         </div>
